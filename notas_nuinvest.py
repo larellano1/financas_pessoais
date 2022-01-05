@@ -145,7 +145,7 @@ def inclui_custo_negocio(df_resumo,df_negocio):
     df_negocio['Custo_Final'] = df_negocio['Custo_Ponderado_C'] + df_negocio['Custo_Ponderado_V']
     
     df_negocio.reset_index(inplace=True)
-    df_negocio = df_negocio.loc[:,~df_negocio.columns.isin(['Custo_Total','Custo_Ponderado_C','Custo_Ponderado_V', 'Percentual_C','Percentual_V'])]
+    df_negocio = df_negocio.loc[:,~df_negocio.columns.isin(['Custo_Total','Custo_Ponderado_C','Custo_Ponderado_V', 'Percentual_C','Percentual_V', 'index'])]
     df_negocio['Preco_Liquido_Pago_Recebido'] = df_negocio['Valor_ajuste'] + df_negocio['Custo_Final']
     df_negocio['Preco_Liquido_Pago_Recebido_Unitario'] = df_negocio['Preco_Liquido_Pago_Recebido']/df_negocio['Qtde']
 
