@@ -115,3 +115,38 @@ def criar_df_negocios(df):
         df_negocio.iloc[:,7:10] = df_negocio.iloc[:,7:10].apply(lambda x: x.str.replace(".", "").str.replace(",",".")).apply(pd.to_numeric)
 
     df_negocio
+
+###Função que faz o join entre os dataframes de negocios e resumos para calcular o custo ponderado de cada negocio.
+def inclui_custo_negocio(df_resumo,df_negocio):
+
+    df_teste = df_negocio.pivot_table(values=['Valor_ajuste'], index=['Nota','Titulo'], columns = ['C/V'], aggfunc='sum').fillna(0)
+    df_teste['Soma'] = 0
+    df_teste['Soma'] = df_teste['Valor_ajuste']['C'] + df_teste['Valor_ajuste']['V']
+    df_teste['Percentual_C'] = df_teste['Valor_ajuste']['C']/df_teste['Soma']
+    df_teste['Percentual_V'] = df_teste['Valor_ajuste']['V']/df_teste['Soma']
+    
+    df_negocio.reset_index(inplace=True)
+    df_negocio.set_index(['Nota','Titulo','C/V'], inplace=True)
+    df_negocio = df_negocio.join(df_teste['Percentual_C'], how='left')
+    df_negocio = df_negocio.join(df_teste['Percentual_V'], how='left')
+    df_negocio.reset_index(inplace=True)
+
+    df_notas_tmp = df_resumo[['Nota','Total_bolsa','Total_Corretagem_Despesas']]
+    df_notas_tmp['Custo_Total'] = df_notas_tmp['Total_bolsa'] + df_notas_tmp['Total_Corretagem_Despesas']
+    df_notas_tmp.set_index('Nota', inplace=True)
+
+    df_negocio.set_index('Nota', inplace=True)
+    df_negocio = df_negocio.join(df_notas_tmp['Custo_Total'], how='left')
+    df_negocio['Custo_Ponderado_C'] = abs(df_negocio['Custo_Total'] * df_negocio['Percentual_C'])
+    df_negocio['Custo_Ponderado_V'] = df_negocio['Custo_Total'] * df_negocio['Percentual_V']
+
+    df_negocio['Custo_Ponderado_V'].where(df_negocio['C/V'] != 'C',0, inplace= True)
+    df_negocio['Custo_Ponderado_C'].where(df_negocio['C/V'] != 'V',0, inplace= True)
+    df_negocio['Custo_Final'] = df_negocio['Custo_Ponderado_C'] + df_negocio['Custo_Ponderado_V']
+    
+    df_negocio.reset_index(inplace=True)
+    df_negocio = df_negocio.loc[:,~df_negocio.columns.isin(['Custo_Total','Custo_Ponderado_C','Custo_Ponderado_V', 'Percentual_C','Percentual_V'])]
+    df_negocio['Preco_Liquido_Pago_Recebido'] = df_negocio['Valor_ajuste'] + df_negocio['Custo_Final']
+    df_negocio['Preco_Liquido_Pago_Recebido_Unitario'] = df_negocio['Preco_Liquido_Pago_Recebido']/df_negocio['Qtde']
+
+    return df_negocio
