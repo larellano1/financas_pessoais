@@ -112,6 +112,6 @@ def criar_df_negocios(df):
         df_tmp = pd.DataFrame(matrix, columns = ['Nota','Data','Mercado', 'C/V', 'Tipo_mercado', 'Titulo', 'Obs', 'Qtde', 'Preco_Ajuste', 'Valor_ajuste', 'D/C'])
         df_negocio = df_negocio.append(df_tmp, ignore_index= True)
         df_negocio['Data'] = pd.to_datetime(df_negocio['Data'], format = '%d/%m/%Y')
-        df_negocio.iloc[:,7:9] = df_negocio.iloc[:,7:10].apply(lambda x: x.str.replace(".", "").str.replace(",",".")).apply(pd.to_numeric)
+        df_negocio.iloc[:,7:10] = df_negocio.iloc[:,7:10].apply(lambda x: x.str.replace(".", "").str.replace(",",".")).apply(pd.to_numeric)
 
     df_negocio
